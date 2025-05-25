@@ -13,6 +13,49 @@ from unstructured.chunking.title import chunk_by_title
 from typing import List, Optional
 
 
+def extract_audio(video_path, output_audio_path):
+    """
+    Extract the audio from a given video file, and save it to a specified file path.
+
+    The extracted audio will be a single-channel, 16-bit PCM WAV file, with a sample
+    rate of 16,000 Hz.
+
+    Parameters
+    ----------
+    video_path : str
+        The path to the video file from which to extract the audio
+    output_audio_path : str
+        The path to the file to which to save the extracted audio
+    """
+    (
+        ffmpeg
+        .input(video_path)
+        .output(output_audio_path, acodec='pcm_s16le', ac=1, ar='16000')
+        .overwrite_output()
+        .run()
+    )
+
+def transcribe_audio(audio_path):
+    
+    """
+    Transcribes the given audio file into text.
+
+    Parameters
+    ----------
+    audio_path : str
+        The path to the audio file to transcribe
+
+    Returns
+    -------
+    str
+        The text transcription of the audio file
+    """
+
+    transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-small", return_timestamps=True) 
+    result = transcriber(audio_path)
+    return result["text"]
+
+
 def transcribe_video(video_path: str) -> str:
 
     """
@@ -29,19 +72,6 @@ def transcribe_video(video_path: str) -> str:
         str: The transcribed text from the audio of the video.
     """
 
-    def extract_audio(video_path, output_audio_path):
-        (
-            ffmpeg
-            .input(video_path)
-            .output(output_audio_path, acodec='pcm_s16le', ac=1, ar='16000')
-            .overwrite_output()
-            .run()
-        )
-
-    def transcribe_audio(audio_path):
-        transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-small", return_timestamps=True) 
-        result = transcriber(audio_path)
-        return result["text"]
 
 
     audio_path = "temp_audio.wav"
@@ -78,29 +108,34 @@ def index_data(client: QdrantClient, filepath:str, filename: str, ort_session: o
                tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3"), collection_name: str = "makeathon") -> None:
 
     """
-    Indexes the content of a file (PDF or MP4) into Qdrant.
+    Indexes the content of a file in a Qdrant collection.
 
-    This function takes a file path, extracts its content, and indexes it into the specified Qdrant collection.
-    The content is first partitioned into chunks, and then each chunk is embedded into a vector using the
-    provided tokenizer and ONNX session. The vector is then stored in the collection along with the original
-    text and the filename of the original file.
+    This function takes a file path and filename, an ONNX runtime session, and an optional tokenizer.
+    It supports PDF, MP4, and MP3 files. It calls the appropriate partitioning function to extract
+    meaningful chunks of text from the file. It then chunks the text by title using the
+    `chunk_by_title` function from `unstructured.partition.text`. It then embeds each chunk of text
+    using the provided tokenizer and the ONNX runtime session, and stores the embeddings in a Qdrant
+    collection with the specified name.
 
     Args:
         client (QdrantClient): The instance of the QdrantClient.
         filepath (str): The path to the file to be indexed.
         filename (str): The name of the file to be indexed.
-        ort_session (ort.InferenceSession): The ONNX session to be used for inference.
-        tokenizer (AutoTokenizer): The tokenizer to be used for tokenizing the content (default: "BAAI/bge-m3").
-        collection_name (str): The name of the collection to be used for indexing (default: "makeathon").
+        ort_session (ort.InferenceSession): The ONNX runtime session to be used for embeddings.
+        tokenizer (AutoTokenizer): The tokenizer to be used for embeddings (default: BAAI/bge-m3).
+        collection_name (str): The name of the Qdrant collection to be used (default: "makeathon").
 
     Returns:
         None
     """
-    
+
     if filepath.endswith(".pdf"):
         elements  = partition_pdf(filename=filepath, ocr_strategy="auto")
     elif filepath.endswith(".mp4"):
         transcription = transcribe_video(filepath)
+        elements = partition_text(text = transcription)
+    elif filepath.endswith(".mp3"):
+        transcription = transcribe_audio(filepath)
         elements = partition_text(text = transcription)
     else:
         raise ValueError(f"Unsupported file format")
