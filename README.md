@@ -1,8 +1,10 @@
-# 🧠 Study Swift – Your Smart Study Companion
+# 🧠 SwiftStudy  – Your Smart Study Companion
 
-Study Swift is an intelligent multimodal study assistant designed to help students quickly extract, search, and understand key information from both video lectures and PDF study materials. By combining state-of-the-art speech transcription, document parsing, and semantic search technologies, Study Swift empowers learners to find relevant content instantly without sifting through entire files.
+SwiftStudy is an intelligent multimodal study assistant designed to help students quickly extract, search, and understand key information from both video lectures and PDF study materials. By combining speech transcription, document parsing, and semantic search technologies, SwiftStudy empowers learners to find relevant content instantly without sifting through entire files.
 
-With Study Swift, students can:
+This proof-of-concept application was developed during the Makeathon 2025 student competition, organized by UniAI — the first student-led AI initiative in Greece. SwiftStudy was created in response to a challenge presented by EY (Ernst & Young), aiming to innovate in the field of educational technology through the use of artificial intelligence.
+
+With SwiftStudy, students can:
 
   *  Upload video lectures in MP4 format and get accurate transcriptions automatically.
 
@@ -14,7 +16,7 @@ With Study Swift, students can:
 
   *  Save time and boost comprehension by focusing on exactly what they need to know.
 
-Under the hood, Study Swift leverages cutting-edge tools:
+Under the hood, SwiftStudy leverages cutting-edge tools:
 
    * OpenAI Whisper for automatic speech recognition of videos.
 
@@ -26,7 +28,7 @@ Under the hood, Study Swift leverages cutting-edge tools:
 
    * Streamlit UI for easy, interactive access to all features.
 
-Study Swift is ideal for students, educators, and lifelong learners who want to study more efficiently, retain information better, and unlock knowledge effortlessly.
+SwiftStudy is ideal for students, educators, and lifelong learners who want to study more efficiently, retain information better, and unlock knowledge effortlessly.
 
 ## Setup Instructions
 
@@ -62,7 +64,7 @@ Before running the app, make sure you have the following prerequisites installed
         docker start qdrant_makeathon
         ```
 3. Insert your OpenAI API key at the beggining of the streamlit_app.py
-4. Run the Study Swift app using Streamlit:
+4. Run the app using Streamlit:
     ```
     rye run streamlit run src/makeathon/streamlit_app.py
     ```
